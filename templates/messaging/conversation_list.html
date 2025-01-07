@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Conversations</h2>
+                <a href="{% url 'messaging:forum_list' %}" class="btn btn-outline-primary">View Forums</a>
+            </div>
+            <div class="list-group mt-3">
+                {% for conversation in conversations %}
+                <a href="{% url 'messaging:conversation_detail' conversation.pk %}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ conversation.get_other_participant.get_full_name }}</h5>
+                        <small>Last message: {{ conversation.last_message|timesince }} ago</small>
+                    </div>
+                    {% with last_message=conversation.messages.first %}
+                    {% if last_message %}
+                    <p class="mb-1">{{ last_message.text_content|truncatechars:100 }}</p>
+                    {% endif %}
+                    {% endwith %}
+                </a>
+                {% empty %}
+                <div class="alert alert-info">No conversations yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

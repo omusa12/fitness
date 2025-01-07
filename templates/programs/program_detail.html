@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Program Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>{{ program.name }}</h2>
+            <p class="text-muted mb-0">
+                {% if program.client %}
+                Assigned to: {{ program.client.get_full_name }}
+                {% else %}
+                Not assigned to any client
+                {% endif %}
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'programs:program_edit' program.pk %}" class="btn btn-secondary">
+                <i class="fas fa-edit mr-1"></i>Edit Program
+            </a>
+            <a href="{% url 'programs:program_delete' program.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash mr-1"></i>Delete Program
+            </a>
+        </div>
+    </div>
+
+    <!-- Program Details -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Program Details</h5>
+                    <p>{{ program.description|linebreaks }}</p>
+                    <p>
+                        <strong>Status:</strong>
+                        {% if program.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Inactive</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Duration</h5>
+                    <p>
+                        {% if program.number_of_weeks == 1 %}
+                        1 Week
+                        {% else %}
+                        {{ program.number_of_weeks }} Weeks
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workouts -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Workouts</h3>
+        <a href="{% url 'programs:workout_create' program.pk %}" class="btn btn-primary">
+            <i class="fas fa-plus mr-1"></i>Add Workout
+        </a>
+    </div>
+
+    {% regroup program.workouts.all by get_day_of_week_display as workout_days %}
+    
+    {% if workout_days %}
+        <div class="row">
+            {% for day in workout_days %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ day.grouper }}</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for workout in day.list %}
+                        <div class="workout-item mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6>{{ workout.name }}</h6>
+                                    {% if workout.description %}
+                                    <p class="text-muted small mb-2">{{ workout.description }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{% url 'programs:workout_exercises' workout.pk %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-dumbbell mr-1"></i>Exercises
+                                    </a>
+                                    <a href="{% url 'programs:workout_edit' workout.pk %}" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-edit mr-1"></i>Edit
+                                    </a>
+                                    <a href="{% url 'programs:workout_delete' workout.pk %}" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash mr-1"></i>Delete
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            {% if workout.exercises.exists %}
+                            <div class="mt-3">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Exercise</th>
+                                            <th>Sets</th>
+                                            <th>Reps</th>
+                                            <th>Rest</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for exercise in workout.exercises.all %}
+                                        <tr>
+                                            <td>{{ exercise.trainer_exercise.exercise.name }}</td>
+                                            <td>{{ exercise.sets }}</td>
+                                            <td>{{ exercise.reps }}</td>
+                                            <td>{{ exercise.rest_time }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <p class="text-muted small mt-2 mb-0">No exercises added yet</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i>No workouts added to this program yet.
+            <a href="{% url 'programs:workout_create' program.pk %}" class="alert-link">Add your first workout</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

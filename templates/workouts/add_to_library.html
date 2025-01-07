@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Add {{ exercise.name }} to Your Library</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <img src="{{ exercise.gif_url }}" alt="{{ exercise.name }}" class="img-fluid rounded">
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Exercise Details:</h5>
+                            <p><strong>Body Part:</strong> {{ exercise.body_part }}</p>
+                            <p><strong>Equipment:</strong> {{ exercise.equipment }}</p>
+                            <p><strong>Target:</strong> {{ exercise.target }}</p>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.custom_video.id_for_label }}" class="form-label">Upload Your Video</label>
+                            {{ form.custom_video }}
+                            {% if form.custom_video.errors %}
+                            <div class="text-danger">
+                                {{ form.custom_video.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.youtube_link.id_for_label }}" class="form-label">Or Provide YouTube Link</label>
+                            {{ form.youtube_link }}
+                            {% if form.youtube_link.errors %}
+                            <div class="text-danger">
+                                {{ form.youtube_link.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="text-danger">
+                                {{ form.notes.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Add to Library</button>
+                            <a href="{% url 'exercise-library' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

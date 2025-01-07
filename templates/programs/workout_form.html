@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">{{ title }} - {{ program.name }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label for="{{ form.name.id_for_label }}">Workout Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.trainer_exercise.id_for_label }}">Select Exercise</label>
+                            {{ form.trainer_exercise }}
+                            {% if form.trainer_exercise.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.trainer_exercise.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Choose an exercise from your library to add to this workout.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.sets.id_for_label }}">Sets</label>
+                                    {{ form.sets }}
+                                    {% if form.sets.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.sets.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.reps.id_for_label }}">Reps</label>
+                                    {{ form.reps }}
+                                    {% if form.reps.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.reps.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.reps.help_text }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="{{ form.rest_time.id_for_label }}">Rest Time</label>
+                                    {{ form.rest_time }}
+                                    {% if form.rest_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.rest_time.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.rest_time.help_text }}</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.day_of_week.id_for_label }}">Day of Week</label>
+                                    {{ form.day_of_week }}
+                                    {% if form.day_of_week.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.day_of_week.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.order.id_for_label }}">Order</label>
+                                    {{ form.order }}
+                                    {% if form.order.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.order.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">Order of this workout within the day</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'programs:program_detail' program.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left mr-1"></i>Back to Program
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i>Save Workout
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Add Bootstrap form-control class to all form inputs */
+    form input[type="text"],
+    form textarea,
+    form select {
+        @extend .form-control;
+    }
+</style>
+{% endblock %}

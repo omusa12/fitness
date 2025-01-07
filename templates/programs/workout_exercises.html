@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Manage Exercises - {{ workout.name }}</h2>
+                <small class="text-muted">{{ workout.get_day_of_week_display }}</small>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {{ formset.management_form }}
+
+                {% if formset.non_form_errors %}
+                <div class="alert alert-danger">
+                    {% for error in formset.non_form_errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Exercise</th>
+                            <th>Sets</th>
+                            <th>Reps</th>
+                            <th>Rest Time</th>
+                            <th>Order</th>
+                            <th>Notes</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for form in formset %}
+                        <tr class="exercise-form">
+                            {{ form.id }}
+                            <td>
+                                {{ form.trainer_exercise }}
+                                {% if form.trainer_exercise.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.trainer_exercise.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.sets }}
+                                {% if form.sets.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.sets.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.reps }}
+                                {% if form.reps.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.reps.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.rest_time }}
+                                {% if form.rest_time.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.rest_time.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.order }}
+                                {% if form.order.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.order.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.notes.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if form.instance.pk %}
+                                <div class="custom-control custom-checkbox">
+                                    {{ form.DELETE }}
+                                    <label class="custom-control-label" for="{{ form.DELETE.id_for_label }}">
+                                        <i class="fas fa-trash text-danger"></i>
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{% url 'programs:program_detail' workout.program.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left mr-1"></i>Back to Program
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i>Save Exercises
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Style form inputs */
+    .exercise-form select,
+    .exercise-form input[type="number"],
+    .exercise-form input[type="text"],
+    .exercise-form textarea {
+        width: 100%;
+        padding: .375rem .75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #495057;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+
+    .exercise-form textarea {
+        height: 38px;  /* Match the height of other inputs */
+        resize: vertical;
+    }
+
+    /* Style delete checkbox */
+    .custom-checkbox {
+        padding-left: 0;
+        text-align: center;
+    }
+    
+    .custom-checkbox input[type="checkbox"] {
+        display: none;
+    }
+    
+    .custom-checkbox label {
+        cursor: pointer;
+    }
+    
+    .custom-checkbox label i {
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-increment order for new forms
+    var maxOrder = 0;
+    $('input[name$="-order"]').each(function() {
+        var value = parseInt($(this).val()) || 0;
+        maxOrder = Math.max(maxOrder, value);
+    });
+    
+    // Set order for empty forms
+    $('input[name$="-order"]').each(function() {
+        if (!$(this).val()) {
+            maxOrder++;
+            $(this).val(maxOrder);
+        }
+    });
+});
+</script>
+{% endblock %}

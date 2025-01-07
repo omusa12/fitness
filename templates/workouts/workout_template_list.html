@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Workout Templates</h2>
+        <a href="{% url 'workouts:workout_template_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus mr-1"></i>Create Template
+        </a>
+    </div>
+
+    {% if workouts %}
+        <div class="row">
+            {% for workout in workouts %}
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ workout.name }}</h5>
+                        {% if workout.description %}
+                        <p class="card-text text-muted">{{ workout.description }}</p>
+                        {% endif %}
+                        
+                        {% if workout.exercises.exists %}
+                        <div class="mt-3">
+                            <h6>Exercises:</h6>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Exercise</th>
+                                        <th>Sets</th>
+                                        <th>Reps</th>
+                                        <th>Rest</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for exercise in workout.exercises.all %}
+                                    <tr>
+                                        <td>{{ exercise.trainer_exercise.exercise.name }}</td>
+                                        <td>{{ exercise.sets }}</td>
+                                        <td>{{ exercise.reps }}</td>
+                                        <td>{{ exercise.rest_time }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No exercises added yet</p>
+                        {% endif %}
+
+                        <div class="mt-3">
+                            <a href="{% url 'workouts:workout_template_exercises' workout.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-dumbbell mr-1"></i>Manage Exercises
+                            </a>
+                            <a href="{% url 'workouts:workout_template_edit' workout.pk %}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </a>
+                            <a href="{% url 'workouts:workout_template_delete' workout.pk %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle mr-2"></i>You haven't created any workout templates yet.
+            <a href="{% url 'workouts:workout_template_create' %}" class="alert-link">Create your first template</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

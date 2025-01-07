@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h3>Confirm Program Unassignment</h3>
+            <p>Are you sure you want to unassign the program "{{ program.name }}" from {{ program.client.get_full_name }}?</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-unlink"></i> Confirm Unassign
+                </button>
+                <a href="{% url 'trainers:client_programs' client_profile.id %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

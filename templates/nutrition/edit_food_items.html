@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Edit Food Items</h2>
+                <div>
+                    <a href="{% url 'nutrition:meal_detail' meal.id %}" class="btn btn-outline-secondary">
+                        Back to Meal
+                    </a>
+                </div>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ formset.management_form }}
+                
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Food Item</th>
+                                <th>Quantity</th>
+                                <th>Unit</th>
+                                <th>Calories</th>
+                                <th>Protein (g)</th>
+                                <th>Carbs (g)</th>
+                                <th>Fat (g)</th>
+                                <th>Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for form in formset %}
+                                <tr class="food-item-form">
+                                    <td>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.name.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.quantity }}
+                                        {% if form.quantity.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.quantity.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.unit }}
+                                        {% if form.unit.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.unit.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.calories }}
+                                        {% if form.calories.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.calories.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.protein }}
+                                        {% if form.protein.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.protein.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.carbs }}
+                                        {% if form.carbs.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.carbs.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ form.fat }}
+                                        {% if form.fat.errors %}
+                                            <div class="alert alert-danger">
+                                                {{ form.fat.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if formset.can_delete %}
+                                            {{ form.DELETE }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3">
+                    <button type="button" class="btn btn-secondary" id="add-food-item">Add Food Item</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.getElementById('add-food-item');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    
+    addButton.addEventListener('click', function() {
+        const formCount = parseInt(totalForms.value);
+        const template = document.querySelector('.food-item-form').cloneNode(true);
+        
+        // Update form index
+        template.innerHTML = template.innerHTML.replace(/form-\d+/g, `form-${formCount}`);
+        
+        // Clear form values
+        template.querySelectorAll('input').forEach(input => {
+            if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+        
+        document.querySelector('tbody').appendChild(template);
+        totalForms.value = formCount + 1;
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

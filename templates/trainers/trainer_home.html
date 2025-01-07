@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Clients</h2>
+    
+    <div class="table-responsive mt-4">
+        {% if clients %}
+            <table class="table table-hover">
+                <thead class="thead-light">
+                    <tr>
+                        <th scope="col">Profile</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Fitness Goal</th>
+                        <th scope="col">Height</th>
+                        <th scope="col">Weight</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>
+                            <img src="{{ client.user.profile.image_url }}" 
+                                 alt="{{ client.user.get_full_name }}" 
+                                 class="rounded-circle"
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                        </td>
+                        <td>{{ client.user.get_full_name }}</td>
+                        <td>{{ client.user.email }}</td>
+                        <td>{{ client.fitness_goal|default:"-" }}</td>
+                        <td>{{ client.height|default:"-" }} {% if client.height %}cm{% endif %}</td>
+                        <td>{{ client.weight|default:"-" }} {% if client.weight %}kg{% endif %}</td>
+                        <td>
+                            <a href="{% url 'trainers:client_detail' client.id %}" class="btn btn-sm btn-info mr-2">
+                                <i class="fas fa-user mr-1"></i>Details
+                            </a>
+                            <a href="{% url 'messaging:start_conversation' client.user.id %}" class="btn btn-sm btn-success mr-2">
+                                <i class="fas fa-envelope mr-1"></i>Message
+                            </a>
+                            <a href="#" class="btn btn-sm btn-primary">
+                                <i class="fas fa-dumbbell mr-1"></i>Programs
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="alert alert-info">
+                You don't have any clients yet. 
+                <a href="{% url 'trainers:register_client' %}" class="alert-link">Register a new client</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'trainers:register_client' %}" class="btn btn-primary">
+            Register New Client
+        </a>
+    </div>
+</div>
+{% endblock %}

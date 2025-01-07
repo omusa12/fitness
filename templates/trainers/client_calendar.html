@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+<style>
+    #calendar {
+        margin: 20px 0;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .fc-event {
+        cursor: pointer;
+    }
+    .program-assignment-modal .modal-body {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h2>Calendar for {{ client.user.get_full_name }}</h2>
+    </div>
+
+    <div id="calendar"></div>
+
+    <!-- Assign Program Modal -->
+    <div class="modal fade program-assignment-modal" id="assignProgramModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Program</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="assignProgramForm" method="POST" action="{% url 'trainers:assign_program' client.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="program">Select Program</label>
+                            <select class="form-control" id="program" name="program" required>
+                                <option value="">Choose a program...</option>
+                                {% for program in available_programs %}
+                                <option value="{{ program.id }}">{{ program.name }} ({{ program.number_of_weeks }} weeks)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="hidden" id="start_date" name="start_date">
+                        <p class="text-muted">Program will start on: <span id="selected_date"></span></p>
+                        <button type="submit" class="btn btn-primary">Assign Program</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEvents = JSON.parse('{{ assigned_programs|escapejs }}');
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth'
+        },
+        events: calendarEvents,
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.location.href = info.event.url;
+                info.jsEvent.preventDefault();
+            }
+        },
+        selectable: true,
+        select: function(info) {
+            // Format the date for display
+            var date = new Date(info.start);
+            var formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Set the hidden input and display text
+            document.getElementById('start_date').value = info.startStr;
+            document.getElementById('selected_date').textContent = formattedDate;
+            
+            // Show the modal
+            $('#assignProgramModal').modal('show');
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}

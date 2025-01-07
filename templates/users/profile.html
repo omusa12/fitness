@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <img class="rounded-circle img-fluid mb-3" src="{{ user.profile.image_url }}" alt="{{ user.username }}'s profile picture" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h5 class="card-title">{{ user.username }}</h5>
+                    <p class="text-muted">{{ user.user_type|title }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Update Profile</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="{{ u_form.username.id_for_label }}">Username</label>
+                            {{ u_form.username }}
+                            {% if u_form.username.errors %}
+                                <div class="alert alert-danger">
+                                    {{ u_form.username.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ u_form.email.id_for_label }}">Email</label>
+                            {{ u_form.email }}
+                            {% if u_form.email.errors %}
+                                <div class="alert alert-danger">
+                                    {{ u_form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ p_form.image.id_for_label }}">Profile Picture</label>
+                            {{ p_form.image }}
+                            {% if p_form.image.errors %}
+                                <div class="alert alert-danger">
+                                    {{ p_form.image.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ p_form.bio.id_for_label }}">Bio</label>
+                            {{ p_form.bio }}
+                            {% if p_form.bio.errors %}
+                                <div class="alert alert-danger">
+                                    {{ p_form.bio.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ p_form.date_of_birth.id_for_label }}">Date of Birth</label>
+                            {{ p_form.date_of_birth }}
+                            {% if p_form.date_of_birth.errors %}
+                                <div class="alert alert-danger">
+                                    {{ p_form.date_of_birth.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="{{ p_form.phone_number.id_for_label }}">Phone Number</label>
+                            {{ p_form.phone_number }}
+                            {% if p_form.phone_number.errors %}
+                                <div class="alert alert-danger">
+                                    {{ p_form.phone_number.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+    .form-group label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+        margin-bottom: 0.5rem;
+    }
+    
+    .alert {
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .alert ul {
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+</style>
+{% endblock %}
+{% endblock %}

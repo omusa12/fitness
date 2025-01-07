@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <img class="rounded-circle img-fluid mb-3" src="{{ user.profile.image_url }}" alt="{{ user.username }}'s profile picture" style="width: 150px; height: 150px; object-fit: cover;">
+                    <h5 class="card-title">Welcome, {{ user.username }}!</h5>
+                    <p class="card-text">
+                        <strong>Email:</strong> {{ user.email }}<br>
+                        <strong>Account Type:</strong> {{ user.user_type|title }}<br>
+                        {% if user.profile.bio %}
+                            <small class="text-muted">{{ user.profile.bio }}</small>
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'profile' %}" class="btn btn-primary">
+                        <i class="fas fa-user-edit mr-1"></i>Update Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            {% if user.is_trainer %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">My Exercise Library</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if trainer_exercises %}
+                            <div class="row">
+                                {% for exercise in trainer_exercises %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="position-relative">
+                                    <img src="{{ exercise.exercise.gif_url }}" class="card-img-top" alt="{{ exercise.exercise.name }}" style="height: 200px; object-fit: cover;">
+                                    {% if exercise.custom_video or exercise.youtube_link %}
+                                        <div class="position-absolute top-0 right-0 p-2">
+                                            <span class="badge badge-primary">
+                                                <i class="fas fa-video"></i> Custom Demo
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ exercise.exercise.name|title }}</h6>
+                                            {% if exercise.custom_video %}
+                                                <p><strong>Custom Video:</strong> Available</p>
+                                            {% endif %}
+                                            {% if exercise.youtube_link %}
+                                                <p><strong>YouTube:</strong> <a href="{{ exercise.youtube_link }}" target="_blank">View</a></p>
+                                            {% endif %}
+                                            {% if exercise.notes %}
+                                                <p class="card-text"><small class="text-muted">{{ exercise.notes }}</small></p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p>No exercises in your library yet.</p>
+                        {% endif %}
+                        <a href="{% url 'workouts:exercise_library' %}" class="btn btn-primary">Browse Exercise Library</a>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Client-specific content here -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">My Workouts</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Client dashboard content will be added here.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

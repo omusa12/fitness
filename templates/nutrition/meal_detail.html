@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load nutrition_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2>{{ meal.get_meal_type_display }}</h2>
+                        <div>
+                            <a href="{% url 'nutrition:edit_food_items' meal.id %}" class="btn btn-outline-primary">
+                                Edit Items
+                            </a>
+                            <a href="{% url 'nutrition:meal_list' %}" class="btn btn-outline-secondary">
+                                Back to Meals
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-muted mt-2">
+                        {{ meal.date|date:"F j, Y" }} at {{ meal.time|time:"g:i A" }}
+                    </h6>
+
+                    {% if meal.notes %}
+                        <div class="mt-3">
+                            <strong>Notes:</strong>
+                            <p>{{ meal.notes }}</p>
+                        </div>
+                    {% endif %}
+
+                    {% if meal.food_image %}
+                        <div class="mt-4">
+                            <img src="{{ meal.food_image.image.url }}" class="img-fluid rounded" alt="Meal photo">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h4>Food Items</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Calories</th>
+                                    <th>Protein</th>
+                                    <th>Carbs</th>
+                                    <th>Fat</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in meal.food_items.all %}
+                                    <tr>
+                                        <td>{{ item.name }}</td>
+                                        <td>{{ item.quantity }} {{ item.get_unit_display }}</td>
+                                        <td>{{ item.calories|floatformat:0 }}</td>
+                                        <td>{{ item.protein|floatformat:1 }}g</td>
+                                        <td>{{ item.carbs|floatformat:1 }}g</td>
+                                        <td>{{ item.fat|floatformat:1 }}g</td>
+                                        <td>
+                                            {% if item.verified %}
+                                                <span class="badge bg-success">Verified</span>
+                                            {% else %}
+                                                <button class="btn btn-sm btn-outline-success verify-item" 
+                                                        data-item-id="{{ item.id }}"
+                                                        data-url="{% url 'nutrition:verify_food_item' item.id %}">
+                                                    Verify
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                <tr class="table-active fw-bold">
+                                    <td colspan="2">Total</td>
+                                    <td>{{ meal.total_calories|floatformat:0 }}</td>
+                                    <td>{{ meal.total_protein|floatformat:1 }}g</td>
+                                    <td>{{ meal.total_carbs|floatformat:1 }}g</td>
+                                    <td>{{ meal.total_fat|floatformat:1 }}g</td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4>Macro Summary</h4>
+                    <div class="d-flex flex-column">
+                        <div class="macro-item mb-3">
+                            <label>Calories</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" 
+                                     style="width: 100%" 
+                                     aria-valuenow="{{ meal.total_calories }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ meal.total_calories }}">
+                                    {{ meal.total_calories|floatformat:0 }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="macro-item mb-3">
+                            <label>Protein</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="{% macro_percentage meal.total_protein meal.total_calories %}" 
+                                     aria-valuenow="{{ meal.total_protein }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ meal.total_protein|floatformat:1 }}g
+                                </div>
+                            </div>
+                        </div>
+                        <div class="macro-item mb-3">
+                            <label>Carbs</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" 
+                                     style="{% macro_percentage meal.total_carbs meal.total_calories %}" 
+                                     aria-valuenow="{{ meal.total_carbs }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ meal.total_carbs|floatformat:1 }}g
+                                </div>
+                            </div>
+                        </div>
+                        <div class="macro-item">
+                            <label>Fat</label>
+                            <div class="progress">
+                                <div class="progress-bar bg-danger" role="progressbar" 
+                                     style="{% macro_percentage meal.total_fat meal.total_calories %}" 
+                                     aria-valuenow="{{ meal.total_fat }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ meal.total_fat|floatformat:1 }}g
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const verifyButtons = document.querySelectorAll('.verify-item');
+    
+    verifyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const url = this.dataset.url;
+            const button = this;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const td = button.parentElement;
+                    td.innerHTML = '<span class="badge bg-success">Verified</span>';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

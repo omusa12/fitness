@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Conversation with {{ conversation.get_other_participant.get_full_name }}</h2>
+                <a href="{% url 'messaging:conversation_list' %}" class="btn btn-outline-secondary">Back to Conversations</a>
+            </div>
+            
+            <div class="messages-container mt-4">
+                {% for message in messages %}
+                <div class="card mb-3 {% if message.sender == user %}border-primary{% endif %}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="card-subtitle mb-2 text-muted">{{ message.sender.get_full_name }}</h6>
+                            <small class="text-muted">{{ message.timestamp|timesince }} ago</small>
+                        </div>
+                        
+                        {% if message.text_content %}
+                        <p class="card-text">{{ message.text_content }}</p>
+                        {% endif %}
+                        
+                        {% if message.image %}
+                        <img src="{{ message.image.url }}" class="img-fluid rounded mt-2" alt="Shared image">
+                        {% endif %}
+                        
+                        {% if message.video %}
+                        <video class="mt-2 w-100" controls>
+                            <source src="{{ message.video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">No messages yet. Start the conversation!</div>
+                {% endfor %}
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Send Message</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="alert alert-danger">
+                                {{ field.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary mt-3">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

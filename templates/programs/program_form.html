@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">{{ title }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group">
+                            <label for="{{ form.name.id_for_label }}">Program Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Describe the program's goals and any special instructions.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.client.id_for_label }}">Assign to Client</label>
+                            {{ form.client }}
+                            {% if form.client.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.client.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.number_of_weeks.id_for_label }}">Program Duration (Weeks)</label>
+                            {{ form.number_of_weeks }}
+                            {% if form.number_of_weeks.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.number_of_weeks.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <small class="form-text text-muted">{{ form.number_of_weeks.help_text }}</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                {{ form.is_active }}
+                                <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">Active Program</label>
+                            </div>
+                            {% if form.is_active.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.is_active.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'programs:program_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left mr-1"></i>Back to Programs
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-1"></i>Save Program
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Add Bootstrap form-control class to all form inputs */
+    form input[type="text"],
+    form input[type="date"],
+    form textarea,
+    form select {
+        @extend .form-control;
+    }
+    
+    /* Style the custom switch */
+    .custom-switch {
+        padding-left: 2.25rem;
+    }
+    
+    .custom-control-label {
+        padding-top: 2px;
+    }
+</style>
+{% endblock %}
