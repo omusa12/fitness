@@ -17,12 +17,31 @@ class TrainerProfile(models.Model):
         return f'{self.trainer.username} Trainer Profile'
 
 class Client(models.Model):
+    WEIGHT_UNITS = [
+        ('kg', 'Kilograms'),
+        ('lb', 'Pounds'),
+    ]
+    HEIGHT_UNITS = [
+        ('cm', 'Centimeters'),
+        ('ft', 'Feet/Inches'),
+    ]
+    FITNESS_GOALS = [
+        ('weight_loss', 'Weight Loss'),
+        ('muscle_gain', 'Muscle Gain'),
+        ('endurance', 'Endurance'),
+        ('flexibility', 'Flexibility'),
+        ('general_fitness', 'General Fitness'),
+    ]
+    
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     trainer = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='clients')
-    fitness_goal = models.TextField(blank=True)
+    fitness_goal = models.CharField(max_length=20, choices=FITNESS_GOALS, blank=True)
     medical_conditions = models.TextField(blank=True)
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    height_unit = models.CharField(max_length=2, choices=HEIGHT_UNITS, default='cm')
+    height_inches = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, help_text='If using feet/inches, enter inches portion here')
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight_unit = models.CharField(max_length=2, choices=WEIGHT_UNITS, default='kg')
     
     def __str__(self):
         return f'{self.user.username} Client Profile'
@@ -44,10 +63,10 @@ class ClientRegistrationToken(models.Model):
     def send_registration_email(self, request=None):
         if request:
             registration_url = request.build_absolute_uri(
-                reverse('client-register') + f'?token={self.token}'
+                reverse('trainers:complete_client_registration') + f'?token={self.token}'
             )
         else:
-            registration_url = f"{settings.SITE_URL}{reverse('client-register')}?token={self.token}"
+            registration_url = f"{settings.SITE_URL}{reverse('trainers:complete_client_registration')}?token={self.token}"
             
         subject = 'Complete Your Fitness Application Registration'
         message = f'''

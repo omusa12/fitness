@@ -8,8 +8,12 @@ from datetime import datetime
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.views.generic import CreateView
 from django.urls import reverse_lazy, reverse
-from .forms import TrainerRegistrationForm, ClientPreRegistrationForm
+from .forms import (
+    TrainerRegistrationForm, ClientPreRegistrationForm, 
+    ClientRegistrationForm, ClientProfileForm
+)
 from .models import ClientRegistrationToken, TrainerProfile, Client
+from django.contrib.auth import login
 from users.models import CustomUser
 from programs.models import Program
 
@@ -166,6 +170,59 @@ def program_unassign_confirm(request, program_id):
         messages.error(request, 'Could not find client profile')
         return redirect('trainers:trainer_home')
 
+def complete_client_registration(request):
+    token = request.GET.get('token')
+    if not token:
+        messages.error(request, 'Registration token is required')
+        return redirect('login')
+        
+    try:
+        registration = ClientRegistrationToken.objects.get(token=token, is_used=False)
+    except ClientRegistrationToken.DoesNotExist:
+        messages.error(request, 'Invalid or expired registration token')
+        return redirect('login')
+        
+    if request.method == 'POST':
+        registration_form = ClientRegistrationForm(request.POST)
+        profile_form = ClientProfileForm(request.POST)
+        
+        if registration_form.is_valid() and profile_form.is_valid():
+            # Get the pre-created user
+            user = CustomUser.objects.get(email=registration.email)
+            
+            # Update user details
+            user.username = registration_form.cleaned_data['username']
+            user.set_password(registration_form.cleaned_data['password1'])
+            user.first_name = registration.first_name
+            user.last_name = registration.last_name
+            user.is_active = True
+            user.save()
+            
+            # Update client profile
+            client = Client.objects.get(user=user)
+            for field, value in profile_form.cleaned_data.items():
+                setattr(client, field, value)
+            client.save()
+            
+            # Mark token as used
+            registration.is_used = True
+            registration.save()
+            
+            # Log the user in
+            login(request, user)
+            
+            messages.success(request, 'Your registration is complete! You can now access your account.')
+            return redirect('dashboard')
+    else:
+        registration_form = ClientRegistrationForm()
+        profile_form = ClientProfileForm()
+    
+    return render(request, 'trainers/complete_client_registration.html', {
+        'form': registration_form,
+        'profile_form': profile_form,
+        'token': token
+    })
+
 def trainer_register(request):
     if request.method == 'POST':
         form = TrainerRegistrationForm(request.POST)
@@ -196,12 +253,20 @@ def register_client(request):
                 client_user = CustomUser.objects.get(email=email)
                 if client_user.is_active:
                     messages.error(request, f'User with email {email} already exists and is active')
-                    return redirect('register-client')
+                    return redirect('trainers:register_client')
                 # If user exists but is inactive, we'll reuse it
             except CustomUser.DoesNotExist:
+                # Generate a unique username based on email
+                import uuid
+                base_username = email.split('@')[0]
+                username = base_username
+                while CustomUser.objects.filter(username=username).exists():
+                    # If username exists, append first 8 chars of a UUID
+                    username = f"{base_username}_{str(uuid.uuid4())[:8]}"
+                
                 # Create a new pre-registered client user
                 client_user = CustomUser.objects.create(
-                    username=email.split('@')[0],  # Temporary username
+                    username=username,
                     email=email,
                     user_type='client',
                     is_active=False
@@ -218,7 +283,7 @@ def register_client(request):
                     client_user.delete()
                     messages.error(request, f'Error creating client profile for {email}: {str(e)}')
                     print(f"Client profile creation error: {str(e)}")  # Debug print
-                    return redirect('register-client')
+                    return redirect('trainers:register_client')
 
             # Mark any existing tokens for this email as used
             ClientRegistrationToken.objects.filter(email=email).update(is_used=True)

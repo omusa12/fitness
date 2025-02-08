@@ -9,8 +9,6 @@ def register(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Create profile for new user
-            Profile.objects.create(user=user)
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('login')
@@ -58,13 +56,14 @@ def dashboard(request):
     
     return render(request, 'users/dashboard.html', context)
 
+def client_wait(request):
+    return render(request, 'users/client_wait.html')
+
 def client_register(request):
     if request.method == 'POST':
         form = ClientRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            # Create profile for new client
-            Profile.objects.create(user=user)
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('login')

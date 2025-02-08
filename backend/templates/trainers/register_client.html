@@ -35,7 +35,7 @@
                         <td>{{ reg.created_at|date:"M d, Y" }}</td>
                         <td>
                             <div class="input-group">
-                                <input type="text" class="form-control" value="{% url 'client-register' %}?token={{ reg.token }}" id="link-{{ reg.id }}" readonly>
+                                <input type="text" class="form-control" value="{% url 'trainers:register_client' %}?token={{ reg.token }}" id="link-{{ reg.id }}" readonly>
                                 <div class="input-group-append">
                                     <button class="btn btn-outline-secondary" type="button" onclick="copyLink('link-{{ reg.id }}')">
                                         Copy

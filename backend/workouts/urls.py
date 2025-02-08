@@ -1,9 +1,13 @@
 from django.urls import path
-from . import views
+from . import views, api
 
 app_name = 'workouts'
 
 urlpatterns = [
+    # API endpoints
+    path('api/', api.api_workouts_list, name='api_workouts_list'),
+    path('api/<int:pk>/', api.api_workout_detail, name='api_workout_detail'),
+    
     path('exercises/', views.all_exercises, name='all_exercises'),
     path('library/', views.exercise_library, name='exercise_library'),
     path('library/add/<int:exercise_id>/', views.add_to_library, name='add_to_library'),

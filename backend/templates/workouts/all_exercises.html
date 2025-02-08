@@ -10,12 +10,18 @@
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row">
+                <div class="col-12 mb-3">
+                    <label for="search">Search Exercises</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search|default:'' }}" 
+                           placeholder="Search by exercise name...">
+                </div>
                 <div class="col-md-4 mb-3">
                     <label for="body_part">Body Part</label>
                     <select name="body_part" id="body_part" class="form-control">
                         <option value="">All Body Parts</option>
                         {% for part in body_parts %}
-                        <option value="{{ part }}" {% if request.GET.body_part == part %}selected{% endif %}>
+                        <option value="{{ part }}" {% if request.GET.body_part|lower == part %}selected{% endif %}>
                             {{ part|title }}
                         </option>
                         {% endfor %}
@@ -26,7 +32,7 @@
                     <select name="equipment" id="equipment" class="form-control">
                         <option value="">All Equipment</option>
                         {% for item in equipment_list %}
-                        <option value="{{ item }}" {% if request.GET.equipment == item %}selected{% endif %}>
+                        <option value="{{ item }}" {% if request.GET.equipment|lower == item %}selected{% endif %}>
                             {{ item|title }}
                         </option>
                         {% endfor %}
@@ -37,7 +43,7 @@
                     <select name="target" id="target" class="form-control">
                         <option value="">All Targets</option>
                         {% for t in targets %}
-                        <option value="{{ t }}" {% if request.GET.target == t %}selected{% endif %}>
+                        <option value="{{ t }}" {% if request.GET.target|lower == t %}selected{% endif %}>
                             {{ t|title }}
                         </option>
                         {% endfor %}
@@ -56,7 +62,7 @@
         {% for exercise in exercises %}
         <div class="col-12 col-md-6 col-lg-4 mb-4">
             <div class="card h-100">
-                <img src="{{ exercise.gif_url }}" class="card-img-top" alt="{{ exercise.name }}" style="height: 200px; object-fit: cover;">
+                <img src="{{ exercise.gif_url_with_media }}" class="card-img-top" alt="{{ exercise.name }}" style="height: 200px; object-fit: cover;">
                 <div class="card-body">
                     <h5 class="card-title">{{ exercise.name|title }}</h5>
                     <p class="card-text">
@@ -64,13 +70,18 @@
                         <strong>Target:</strong> {{ exercise.target|title }}<br>
                         <strong>Equipment:</strong> {{ exercise.equipment|title }}
                     </p>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exerciseModal{{ exercise.id }}">
-                        {% if library_exercises|in_library:exercise %}
-                            Already in Library
-                        {% else %}
-                            Add to Library
-                        {% endif %}
-                    </button>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exerciseModal{{ exercise.id }}">
+                            View Details
+                        </button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal{{ exercise.id }}">
+                            {% if library_exercises|in_library:exercise %}
+                                Already in Library
+                            {% else %}
+                                Add to Library
+                            {% endif %}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,14 +95,12 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exerciseModalLabel{{ exercise.id }}">{{ exercise.name|title }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body py-3">
                     <div class="row">
                         <div class="col-md-6">
-                            <img src="{{ exercise.gif_url }}" class="img-fluid" alt="{{ exercise.name }}">
+                            <img src="{{ exercise.gif_url_with_media }}" class="img-fluid" alt="{{ exercise.name }}">
                         </div>
                         <div class="col-md-6">
                             <h6>Details:</h6>
@@ -140,7 +149,7 @@
                                 <textarea class="form-control" id="notes_{{ exercise.id }}" name="notes" rows="2" placeholder="Add any notes about this exercise..."></textarea>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-primary">Add to Library</button>
                             </div>
                         </form>
@@ -165,10 +174,10 @@
         <ul class="pagination justify-content-center pagination-lg">
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page=1{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">&laquo; First</a>
+                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">&laquo; First</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Previous</a>
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Previous</a>
             </li>
             {% endif %}
 
@@ -178,10 +187,10 @@
 
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Next</a>
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Next</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Last &raquo;</a>
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.body_part %}&body_part={{ request.GET.body_part }}{% endif %}{% if request.GET.equipment %}&equipment={{ request.GET.equipment }}{% endif %}{% if request.GET.target %}&target={{ request.GET.target }}{% endif %}">Last &raquo;</a>
             </li>
             {% endif %}
         </ul>
@@ -196,11 +205,14 @@ $(document).ready(function() {
     console.log('Exercise library page loaded');
     
     // Initialize modals with specific options
-    $('.modal').modal({
-        show: false,
-        backdrop: 'static',
-        keyboard: true,
-        focus: true
+    // Initialize Bootstrap 5 modals
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        new bootstrap.Modal(modal, {
+            backdrop: 'static',
+            keyboard: true,
+            focus: true
+        });
     });
 });
 </script>

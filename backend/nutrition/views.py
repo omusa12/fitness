@@ -80,8 +80,24 @@ def create_meal(request):
             return redirect('nutrition:meal_detail', meal_id=meal.id)
     else:
         meal_form = MealForm()
-        initial_data = detected_items if isinstance(detected_items, list) else []
-        # Set the number of forms to match the number of detected items plus one extra
+        # Process detected items to ensure correct field mapping
+        initial_data = []
+        if isinstance(detected_items, list):
+            for item in detected_items:
+                if isinstance(item, dict):
+                    # Ensure all required fields are present with correct names
+                    processed_item = {
+                        'name': item.get('name', ''),
+                        'quantity': item.get('quantity', 0),
+                        'unit': item.get('unit', ''),  # This must match exactly with UNIT_CHOICES
+                        'calories': item.get('calories', 0),
+                        'protein': item.get('protein', 0),
+                        'carbs': item.get('calories', 0),  # Map calories to carbs since they're the same
+                        'fat': item.get('fat', 0)
+                    }
+                    initial_data.append(processed_item)
+        
+        # Set the number of forms to match the detected items plus one extra
         num_items = len(initial_data)
         FormSetFactory = get_food_item_formset(extra=num_items + 1)
         formset = FormSetFactory(initial=initial_data)

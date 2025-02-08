@@ -78,7 +78,7 @@ class FoodImage(models.Model):
                     messages=[{
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": "Analyze this food image and return a JSON array of food items. Each item should have 'name', 'quantity', and 'unit' fields. For quantities, use numerical values and appropriate units from this list: grams (g), milliliters (ml), ounces (oz), cups (cup), tablespoons (tbsp), teaspoons (tsp), or pieces (piece). Here are examples of how to format different types of foods:\n\n[{\n  \"name\": \"Grilled Chicken Breast\",\n  \"quantity\": 100,\n  \"unit\": \"g\"\n},\n{\n  \"name\": \"Mixed Salad Greens\",\n  \"quantity\": 2,\n  \"unit\": \"cup\"\n},\n{\n  \"name\": \"Olive Oil Dressing\",\n  \"quantity\": 2,\n  \"unit\": \"tbsp\"\n},\n{\n  \"name\": \"Cherry Tomatoes\",\n  \"quantity\": 6,\n  \"unit\": \"piece\"\n},\n{\n  \"name\": \"Avocado\",\n  \"quantity\": 0.5,\n  \"unit\": \"piece\"\n}]\n\nPlease format your response exactly like this example, using appropriate units for each food item."},
+                            {"type": "text", "text": "Analyze this food image and return a JSON array of food items. Each item MUST have ALL of the following fields:\n- 'name': descriptive name of the food\n- 'quantity': numerical value\n- 'unit': MUST be exactly one of these values: 'g', 'ml', 'oz', 'cup', 'tbsp', 'tsp', 'piece'\n- 'calories': numerical value in kcal (REQUIRED)\n- 'protein': numerical value in grams (REQUIRED)\n- 'fat': numerical value in grams (REQUIRED)\n\nIMPORTANT:\n- Use EXACT unit values listed above (e.g. 'g' not 'grams', 'cup' not 'cups')\n- ALL nutritional values must be included for EACH item\n- Use appropriate units for each food type\n\nExample format:\n[\n  {\n    \"name\": \"Grilled Chicken Breast\",\n    \"quantity\": 100,\n    \"unit\": \"g\",\n    \"calories\": 165,\n    \"protein\": 31,\n    \"fat\": 3.6\n  },\n  {\n    \"name\": \"Mixed Salad Greens\",\n    \"quantity\": 2,\n    \"unit\": \"cup\",\n    \"calories\": 10,\n    \"protein\": 1,\n    \"fat\": 0\n  },\n  {\n    \"name\": \"Olive Oil Dressing\",\n    \"quantity\": 2,\n    \"unit\": \"tbsp\",\n    \"calories\": 240,\n    \"protein\": 0,\n    \"fat\": 28\n  },\n  {\n    \"name\": \"Cherry Tomatoes\",\n    \"quantity\": 6,\n    \"unit\": \"piece\",\n    \"calories\": 30,\n    \"protein\": 1,\n    \"fat\": 0.3\n  }\n]\n\nEnsure ALL fields are included and units match EXACTLY as specified above."},
                             {
                                 "type": "image_url",
                                 "image_url": {
@@ -87,7 +87,7 @@ class FoodImage(models.Model):
                             }
                         ]
                     }],
-                    max_tokens=300
+                    max_tokens=1000
                 )
                 print("Response received:", response)
 

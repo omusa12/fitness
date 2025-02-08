@@ -25,6 +25,13 @@ class Exercise(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def gif_url_with_media(self):
+        if self.gif_url and not self.gif_url.startswith('http'):
+            from django.conf import settings
+            return f"{settings.MEDIA_URL}{self.gif_url}"
+        return self.gif_url
+
     class Meta:
         ordering = ['name']
 

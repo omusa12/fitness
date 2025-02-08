@@ -1,130 +1,82 @@
 from django import forms
-from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.forms import BaseModelFormSet
 from .models import Program, ProgramWorkout, WorkoutExercise
-from workouts.models import TrainerWorkout, TrainerExercise
+from workouts.models import TrainerExercise
 
 class ProgramForm(forms.ModelForm):
     class Meta:
         model = Program
-        fields = ['name', 'description', 'client', 'number_of_weeks', 'is_active']
+        fields = ['name', 'description', 'client', 'number_of_weeks', 'start_date', 'is_active']
 
-    def __init__(self, trainer, *args, **kwargs):
+    def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only show clients assigned to this trainer
-        self.fields['client'].queryset = trainer.clients.all()
-        self.fields['client'].empty_label = "Select a client (optional)"
-        self.fields['number_of_weeks'].min_value = 1
-        self.fields['number_of_weeks'].help_text = "Number of weeks for the program"
+        self.fields['client'].queryset = user.clients.all()
 
 class ProgramWorkoutForm(forms.ModelForm):
-    trainer_exercise = forms.ModelChoiceField(
-        queryset=TrainerExercise.objects.none(),
-        empty_label="Select an exercise from your library",
-        required=True
-    )
+    trainer_exercise = forms.ModelChoiceField(queryset=None)
     sets = forms.IntegerField(min_value=1)
     reps = forms.CharField(max_length=50, help_text="e.g., '8-12' or 'Until failure'")
     rest_time = forms.CharField(max_length=50, help_text="e.g., '60s' or '2min'")
-    
+
     class Meta:
         model = ProgramWorkout
-        fields = ['name', 'description', 'day_of_week', 'order']
-        widgets = {
-            'description': forms.Textarea(attrs={'rows': 3}),
-        }
+        fields = ['day_of_week', 'order']
 
-    def __init__(self, trainer, program=None, *args, **kwargs):
+    def __init__(self, user, program, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.trainer = trainer
+        self.fields['trainer_exercise'].queryset = TrainerExercise.objects.filter(trainer=user)
         self.program = program
-        # Only show exercises from trainer's library
-        self.fields['trainer_exercise'].queryset = TrainerExercise.objects.filter(trainer=trainer)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        day_of_week = cleaned_data.get('day_of_week')
-        order = cleaned_data.get('order')
-
-        if self.program and day_of_week is not None and order is not None:
-            # Check if there's already a workout with the same day and order
-            existing = ProgramWorkout.objects.filter(
-                program=self.program,
-                day_of_week=day_of_week,
-                order=order
-            )
-            if self.instance:
-                existing = existing.exclude(pk=self.instance.pk)
-            if existing.exists():
-                raise ValidationError(
-                    f"A workout with order {order} already exists for this day"
-                )
-        
-        return cleaned_data
 
     def save(self, commit=True):
-        workout = super().save(commit=False)
-        if self.program:
-            workout.program = self.program
-        
+        instance = super().save(commit=False)
+        instance.program = self.program
         if commit:
-            with transaction.atomic():
-                workout.save()
-                # Create the exercise for this workout
-                WorkoutExercise.objects.create(
-                    workout=workout,
-                    trainer_exercise=self.cleaned_data['trainer_exercise'],
-                    sets=self.cleaned_data['sets'],
-                    reps=self.cleaned_data['reps'],
-                    rest_time=self.cleaned_data['rest_time'],
-                    order=0  # First exercise
-                )
-        
-        return workout
+            instance.save()
+        return instance
 
 class WorkoutExerciseForm(forms.ModelForm):
     class Meta:
         model = WorkoutExercise
         fields = ['trainer_exercise', 'sets', 'reps', 'rest_time', 'notes', 'order']
 
-    def __init__(self, trainer, workout=None, *args, **kwargs):
+    def __init__(self, trainer=None, workout=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if trainer:
+            self.fields['trainer_exercise'].queryset = TrainerExercise.objects.filter(trainer=trainer)
         self.workout = workout
-        # Only show exercises from trainer's library
-        self.fields['trainer_exercise'].queryset = trainer.trainerexercise_set.all()
 
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.workout:
+            instance.workout = self.workout
+        if commit:
+            instance.save()
+        return instance
+
+class WorkoutExerciseFormSet(BaseModelFormSet):
     def clean(self):
-        cleaned_data = super().clean()
-        order = cleaned_data.get('order')
-
-        if self.workout and order is not None:
-            # Check if there's already an exercise with the same order
-            existing = WorkoutExercise.objects.filter(
-                workout=self.workout,
-                order=order
-            )
-            if self.instance:
-                existing = existing.exclude(pk=self.instance.pk)
-            if existing.exists():
-                raise ValidationError(
-                    f"An exercise with order {order} already exists in this workout"
-                )
-        
-        return cleaned_data
-
-class WorkoutExerciseFormSet(forms.BaseModelFormSet):
-    def clean(self):
-        """
-        Checks that no two exercises have the same order number.
-        """
-        if any(self.errors):
-            return
-
+        super().clean()
         orders = []
         for form in self.forms:
-            if self.can_delete and self._should_delete_form(form):
-                continue
-            order = form.cleaned_data.get('order')
-            if order in orders:
-                raise ValidationError("Each exercise must have a unique order number.")
-            orders.append(order)
+            if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                order = form.cleaned_data.get('order')
+                if order in orders:
+                    raise forms.ValidationError('Each exercise must have a unique order.')
+                orders.append(order)
+
+class WorkoutSectionForm(forms.Form):
+    name = forms.CharField(max_length=200)
+    description = forms.CharField(widget=forms.Textarea, required=False)
+    section_type = forms.ChoiceField(choices=ProgramWorkout.SECTION_TYPES)
+    days = forms.MultipleChoiceField(
+        choices=[
+            (0, 'Monday'),
+            (1, 'Tuesday'),
+            (2, 'Wednesday'),
+            (3, 'Thursday'),
+            (4, 'Friday'),
+            (5, 'Saturday'),
+            (6, 'Sunday'),
+        ],
+        widget=forms.CheckboxSelectMultiple
+    )

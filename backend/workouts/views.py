@@ -15,22 +15,25 @@ def all_exercises(request):
     exercises = Exercise.objects.all()
     
     # Get filter parameters
+    search_query = request.GET.get('search')
     body_part = request.GET.get('body_part')
     equipment = request.GET.get('equipment')
     target = request.GET.get('target')
     
-    # Apply filters if provided
+    # Apply filters if provided (case-insensitive)
+    if search_query:
+        exercises = exercises.filter(name__icontains=search_query)
     if body_part:
-        exercises = exercises.filter(body_part=body_part)
+        exercises = exercises.filter(body_part__iexact=body_part)
     if equipment:
-        exercises = exercises.filter(equipment=equipment)
+        exercises = exercises.filter(equipment__iexact=equipment)
     if target:
-        exercises = exercises.filter(target=target)
+        exercises = exercises.filter(target__iexact=target)
     
-    # Get unique values for filter dropdowns
-    body_parts = Exercise.objects.values_list('body_part', flat=True).distinct()
-    equipment_list = Exercise.objects.values_list('equipment', flat=True).distinct()
-    targets = Exercise.objects.values_list('target', flat=True).distinct()
+    # Get unique values for filter dropdowns and normalize them
+    body_parts = sorted(set(bp.lower().strip() for bp in Exercise.objects.values_list('body_part', flat=True)))
+    equipment_list = sorted(set(eq.lower().strip() for eq in Exercise.objects.values_list('equipment', flat=True)))
+    targets = sorted(set(t.lower().strip() for t in Exercise.objects.values_list('target', flat=True)))
     
     # Get trainer's library for checking if exercise is already added
     library_exercises = TrainerExercise.objects.filter(trainer=request.user)
@@ -64,18 +67,20 @@ def exercise_library(request):
     equipment = request.GET.get('equipment')
     target = request.GET.get('target')
     
-    # Apply filters if provided
+    # Apply filters if provided (case-insensitive)
     if body_part:
-        exercises = exercises.filter(body_part=body_part)
+        exercises = exercises.filter(body_part__iexact=body_part)
     if equipment:
-        exercises = exercises.filter(equipment=equipment)
+        exercises = exercises.filter(equipment__iexact=equipment)
     if target:
-        exercises = exercises.filter(target=target)
+        exercises = exercises.filter(target__iexact=target)
     
-    # Get unique values for filter dropdowns from trainer's exercises only
-    body_parts = exercises.values_list('body_part', flat=True).distinct()
-    equipment_list = exercises.values_list('equipment', flat=True).distinct()
-    targets = exercises.values_list('target', flat=True).distinct()
+    # Get unique values for filter dropdowns from all trainer's exercises (unfiltered)
+    all_trainer_exercises = Exercise.objects.filter(trainerexercise__trainer=request.user)
+    # Get unique values and normalize them (convert to lowercase and sort)
+    body_parts = sorted(set(bp.lower().strip() for bp in all_trainer_exercises.values_list('body_part', flat=True)))
+    equipment_list = sorted(set(eq.lower().strip() for eq in all_trainer_exercises.values_list('equipment', flat=True)))
+    targets = sorted(set(t.lower().strip() for t in all_trainer_exercises.values_list('target', flat=True)))
     
     # Pagination
     paginator = Paginator(exercises, 12)  # Show 12 exercises per page

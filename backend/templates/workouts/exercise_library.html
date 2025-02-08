@@ -15,7 +15,7 @@
                     <select name="body_part" id="body_part" class="form-control">
                         <option value="">All Body Parts</option>
                         {% for part in body_parts %}
-                        <option value="{{ part }}" {% if request.GET.body_part == part %}selected{% endif %}>
+                        <option value="{{ part }}" {% if request.GET.body_part|lower == part %}selected{% endif %}>
                             {{ part|title }}
                         </option>
                         {% endfor %}
@@ -26,7 +26,7 @@
                     <select name="equipment" id="equipment" class="form-control">
                         <option value="">All Equipment</option>
                         {% for item in equipment_list %}
-                        <option value="{{ item }}" {% if request.GET.equipment == item %}selected{% endif %}>
+                        <option value="{{ item }}" {% if request.GET.equipment|lower == item %}selected{% endif %}>
                             {{ item|title }}
                         </option>
                         {% endfor %}
@@ -37,7 +37,7 @@
                     <select name="target" id="target" class="form-control">
                         <option value="">All Targets</option>
                         {% for t in targets %}
-                        <option value="{{ t }}" {% if request.GET.target == t %}selected{% endif %}>
+                        <option value="{{ t }}" {% if request.GET.target|lower == t %}selected{% endif %}>
                             {{ t|title }}
                         </option>
                         {% endfor %}
@@ -57,7 +57,7 @@
         {% with trainer_exercise=library_exercises|get_trainer_exercise:exercise %}
         <div class="col-12 col-md-6 col-lg-4 mb-4">
             <div class="card h-100">
-                <img src="{{ exercise.gif_url }}" class="card-img-top" alt="{{ exercise.name }}" style="height: 200px; object-fit: cover;">
+                <img src="{{ exercise.gif_url_with_media }}" class="card-img-top" alt="{{ exercise.name }}" style="height: 200px; object-fit: cover;">
                 <div class="card-body">
                     <h5 class="card-title">{{ exercise.name|title }}</h5>
                     <p class="card-text">
@@ -77,8 +77,8 @@
                     {% if trainer_exercise.youtube_link %}
                     <div class="mt-2">
                         <strong>YouTube Video:</strong>
-                        <div class="embed-responsive embed-responsive-16by9 mt-2 mb-2">
-                            <iframe class="embed-responsive-item" src="{{ trainer_exercise.youtube_link|youtube_embed_url }}" allowfullscreen></iframe>
+                        <div class="ratio ratio-16x9 mt-2 mb-2">
+                            <iframe src="{{ trainer_exercise.youtube_link|youtube_embed_url }}" allowfullscreen></iframe>
                         </div>
                     </div>
                     {% endif %}
@@ -88,7 +88,7 @@
                         <p class="card-text"><small class="text-muted">{{ trainer_exercise.notes }}</small></p>
                     </div>
                     {% endif %}
-                    <button type="button" class="btn btn-primary mt-2" data-toggle="modal" data-target="#exerciseModal{{ exercise.id }}">
+                    <button type="button" class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#exerciseModal{{ exercise.id }}">
                         Edit Details
                     </button>
                 </div>
@@ -105,14 +105,12 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exerciseModalLabel{{ exercise.id }}">{{ exercise.name|title }}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body py-3">
                         <div class="row">
                             <div class="col-md-6">
-                                <img src="{{ exercise.gif_url }}" class="img-fluid" alt="{{ exercise.name }}">
+                                <img src="{{ exercise.gif_url_with_media }}" class="img-fluid" alt="{{ exercise.name }}">
                             </div>
                             <div class="col-md-6">
                                 <h6>Details:</h6>
@@ -145,7 +143,7 @@
                             {% csrf_token %}
                             <div class="form-group mb-3">
                                 <label for="custom_video_{{ exercise.id }}">Upload Custom Video (Optional)</label>
-                                <input type="file" class="form-control-file" id="custom_video_{{ exercise.id }}" name="custom_video" accept="video/*">
+                                <input type="file" class="form-control" id="custom_video_{{ exercise.id }}" name="custom_video" accept="video/*">
                                 <small class="form-text text-muted">Upload your own video demonstration of this exercise</small>
                             </div>
                             <div class="form-group mb-3">
@@ -158,7 +156,7 @@
                                 <textarea class="form-control" id="notes_{{ exercise.id }}" name="notes" rows="2" placeholder="Add any notes about this exercise..."></textarea>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button type="button" class="btn btn-secondary mr-2" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" class="btn btn-primary">Add to Library</button>
                             </div>
                         </form>
@@ -175,7 +173,6 @@
         </div>
     </div>
     {% endif %}
-
 
     <!-- Pagination -->
     {% if is_paginated %}
@@ -226,58 +223,53 @@ $(document).ready(function() {
         });
     });
 
-    // Initialize modals with specific options
-    $('.modal').modal({
-        show: false,
-        backdrop: 'static',
-        keyboard: true,
-        focus: true
-    });
-
     // Monitor modal events with detailed logging
-    $('.modal').on({
-        'show.bs.modal': function(e) {
-            var modalId = this.id;
-            var exerciseId = $(this).data('exercise-id');
+    document.querySelectorAll('.modal').forEach(function(modalElement) {
+        modalElement.addEventListener('show.bs.modal', function(e) {
             console.log('Modal show event:', {
-                modalId: modalId,
-                exerciseId: exerciseId,
-                trigger: e.relatedTarget ? $(e.relatedTarget).text().trim() : 'unknown'
+                modalId: this.id,
+                exerciseId: this.dataset.exerciseId,
+                trigger: e.relatedTarget ? e.relatedTarget.textContent.trim() : 'unknown'
             });
-        },
-        'shown.bs.modal': function(e) {
+        });
+
+        modalElement.addEventListener('shown.bs.modal', function(e) {
             console.log('Modal shown:', this.id);
             // Focus Add to Library button
-            $(this).find('.modal-footer .btn-primary').focus();
-        },
-        'hide.bs.modal': function(e) {
+            this.querySelector('.modal-footer .btn-primary').focus();
+        });
+
+        modalElement.addEventListener('hide.bs.modal', function(e) {
             console.log('Modal hide event:', this.id);
-        },
-        'hidden.bs.modal': function(e) {
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', function(e) {
             console.log('Modal hidden:', this.id);
-            // Clean up any stray backdrops
-            if ($('.modal:visible').length === 0) {
-                $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open');
-            }
-        }
+        });
+
+        // Create Bootstrap 5 Modal instance
+        new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: true,
+            focus: true
+        });
     });
 
     // Monitor modal trigger clicks
-    $('[data-toggle="modal"]').on('click', function(e) {
-        var $trigger = $(this);
-        var targetId = $trigger.data('target');
-        console.log('Modal trigger clicked:', {
-            target: targetId,
-            button: $trigger.text().trim(),
-            buttonParent: $trigger.parent().prop('tagName')
+    document.querySelectorAll('[data-bs-toggle="modal"]').forEach(function(trigger) {
+        trigger.addEventListener('click', function(e) {
+            console.log('Modal trigger clicked:', {
+                target: this.dataset.bsTarget,
+                button: this.textContent.trim(),
+                buttonParent: this.parentElement.tagName
+            });
         });
     });
 
     // Log any modal errors
-    $(document).on('error.bs.modal', '.modal', function(e) {
+    document.addEventListener('error.bs.modal', function(e) {
         console.error('Modal error:', {
-            modalId: this.id,
+            modalId: e.target.id,
             error: e
         });
     });

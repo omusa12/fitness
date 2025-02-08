@@ -30,9 +30,19 @@ class Program(models.Model):
         ordering = ['-created_at']
 
 class ProgramWorkout(models.Model):
+    SECTION_TYPES = [
+        ('strength', 'Strength'),
+        ('core', 'Core'),
+        ('starter', 'Starter'),
+        ('finisher', 'Finisher'),
+        ('cardio', 'Cardio'),
+        ('mobility', 'Mobility'),
+    ]
+
     program = models.ForeignKey(Program, on_delete=models.CASCADE, related_name='workouts')
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
+    section_type = models.CharField(max_length=20, choices=SECTION_TYPES, default='strength')
     day_of_week = models.IntegerField(choices=[
         (0, 'Monday'),
         (1, 'Tuesday'),

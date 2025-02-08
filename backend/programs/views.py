@@ -2,11 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.forms import modelformset_factory
-from django.db import transaction
+from django.db import transaction, models
 from django.http import HttpResponseForbidden
 from .models import Program, ProgramWorkout, WorkoutExercise
 from workouts.models import TrainerExercise
-from .forms import ProgramForm, ProgramWorkoutForm, WorkoutExerciseForm, WorkoutExerciseFormSet
+from .forms import (
+    ProgramForm, ProgramWorkoutForm, WorkoutExerciseForm, 
+    WorkoutExerciseFormSet, WorkoutSectionForm
+)
 
 @login_required
 def program_list(request):
@@ -103,7 +106,11 @@ def workout_create(request, program_pk):
     if request.method == 'POST':
         form = ProgramWorkoutForm(request.user, program, request.POST)
         if form.is_valid():
-            workout = form.save()
+            workout = form.save(commit=False)
+            # Set default name based on day and order
+            day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            workout.name = f"{day_names[workout.day_of_week]} Workout {workout.order}"
+            workout.save()
             messages.success(request, 'Workout added successfully.')
             return redirect('programs:program_detail', pk=program.pk)
     else:
@@ -143,8 +150,11 @@ def workout_edit(request, pk):
         form = ProgramWorkoutForm(request.user, workout.program, request.POST, instance=workout)
         if form.is_valid():
             with transaction.atomic():
-                # Save the workout
-                workout = form.save()
+                # Save the workout with auto-generated name
+                workout = form.save(commit=False)
+                day_names = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                workout.name = f"{day_names[workout.day_of_week]} Workout {workout.order}"
+                workout.save()
                 # Update the exercise
                 if workout_exercise:
                     workout_exercise.trainer_exercise = form.cleaned_data['trainer_exercise']
@@ -235,4 +245,120 @@ def workout_exercises(request, workout_pk):
     return render(request, 'programs/workout_exercises.html', {
         'formset': formset,
         'workout': workout
+    })
+
+@login_required
+@login_required
+def edit_workout_section(request, program_pk, section_name):
+    """View for editing workout sections across multiple days."""
+    program = get_object_or_404(Program, pk=program_pk)
+    
+    if request.user != program.trainer:
+        return HttpResponseForbidden("You don't have permission to edit workouts in this program.")
+    
+    # Get all sections with this name
+    sections = ProgramWorkout.objects.filter(program=program, name=section_name)
+    if not sections.exists():
+        messages.error(request, 'Section not found.')
+        return redirect('programs:program_detail', pk=program_pk)
+    
+    # Get the days where this section exists
+    current_days = [str(section.day_of_week) for section in sections]
+    
+    if request.method == 'POST':
+        form = WorkoutSectionForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                # Update existing sections
+                sections.update(
+                    name=form.cleaned_data['name'],
+                    description=form.cleaned_data['description'],
+                    section_type=form.cleaned_data['section_type']
+                )
+                
+                # Get the selected days
+                new_days = form.cleaned_data['days']
+                
+                # Remove section from unselected days
+                sections.filter(day_of_week__in=[int(d) for d in current_days if d not in new_days]).delete()
+                
+                # Add section to newly selected days
+                for day in new_days:
+                    if str(day) not in current_days:
+                        # Get the highest order for this day
+                        max_order = ProgramWorkout.objects.filter(
+                            program=program,
+                            day_of_week=day
+                        ).aggregate(models.Max('order'))['order__max']
+                        
+                        # If no workouts exist for this day, start with order 0
+                        next_order = (max_order + 1) if max_order is not None else 0
+                        
+                        # Create the workout section
+                        ProgramWorkout.objects.create(
+                            program=program,
+                            name=form.cleaned_data['name'],
+                            description=form.cleaned_data['description'],
+                            section_type=form.cleaned_data['section_type'],
+                            day_of_week=day,
+                            order=next_order
+                        )
+            
+            messages.success(request, 'Workout sections updated successfully.')
+            return redirect('programs:program_detail', pk=program.pk)
+    else:
+        # Get initial data from first section
+        first_section = sections.first()
+        form = WorkoutSectionForm(initial={
+            'name': first_section.name,
+            'description': first_section.description,
+            'section_type': first_section.section_type,
+            'days': current_days
+        })
+    
+    return render(request, 'programs/edit_workout_section.html', {
+        'form': form,
+        'program': program,
+        'section_name': section_name
+    })
+
+def add_workout_section(request, program_pk):
+    """View for adding workout sections to multiple days."""
+    program = get_object_or_404(Program, pk=program_pk)
+    
+    if request.user != program.trainer:
+        return HttpResponseForbidden("You don't have permission to add workouts to this program.")
+    
+    if request.method == 'POST':
+        form = WorkoutSectionForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                for day in form.cleaned_data['days']:
+                    # Get the highest order for this day
+                    max_order = ProgramWorkout.objects.filter(
+                        program=program,
+                        day_of_week=day
+                    ).aggregate(models.Max('order'))['order__max']
+                    
+                    # If no workouts exist for this day, start with order 0
+                    next_order = (max_order + 1) if max_order is not None else 0
+                    
+                    # Create the workout section
+                    ProgramWorkout.objects.create(
+                        program=program,
+                        name=form.cleaned_data['name'],
+                        description=form.cleaned_data['description'],
+                        section_type=form.cleaned_data['section_type'],
+                        day_of_week=day,
+                        order=next_order
+                    )
+            
+            messages.success(request, 'Workout sections added successfully.')
+            return redirect('programs:program_detail', pk=program.pk)
+    else:
+        form = WorkoutSectionForm()
+    
+    return render(request, 'programs/add_workout_section.html', {
+        'form': form,
+        'program': program
     })

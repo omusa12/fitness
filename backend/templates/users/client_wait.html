@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Client Registration Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Thank you for your interest!</h5>
+                        <p>To register as a client, you will need to receive an invitation email from your trainer. Please contact your trainer and ask them to send you a registration link.</p>
+                        <hr>
+                        <p class="mb-0">Once you receive the email, click on the registration link to complete your account setup.</p>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'login' %}" class="btn btn-primary">Back to Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

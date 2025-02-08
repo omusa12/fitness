@@ -1,9 +1,14 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from . import views, api
 
 app_name = 'nutrition'
 
+router = DefaultRouter()
+router.register(r'api/meals', api.MealViewSet, basename='meal-api')
+
 urlpatterns = [
+    path('', include(router.urls)),
     path('upload/', views.upload_food_image, name='upload_food_image'),
     path('create-meal/', views.create_meal, name='create_meal'),
     path('meals/', views.meal_list, name='meal_list'),

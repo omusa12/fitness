@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center mb-0">Complete Your Registration</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h4 class="mb-3">Account Information</h4>
+                        {{ form|crispy }}
+                        
+                        <h4 class="mb-3 mt-4">Profile Information</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ profile_form.fitness_goal|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ profile_form.medical_conditions|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-8">
+                                        {{ profile_form.height|as_crispy_field }}
+                                    </div>
+                                    <div class="col-4">
+                                        {{ profile_form.height_unit|as_crispy_field }}
+                                    </div>
+                                </div>
+                                <div class="row height-inches-row" style="display: none;">
+                                    <div class="col-12">
+                                        {{ profile_form.height_inches|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-8">
+                                        {{ profile_form.weight|as_crispy_field }}
+                                    </div>
+                                    <div class="col-4">
+                                        {{ profile_form.weight_unit|as_crispy_field }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Complete Registration</button>
+                        </div>
+                    </form>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const heightUnit = document.getElementById('id_height_unit');
+                            const heightInchesRow = document.querySelector('.height-inches-row');
+                            
+                            function toggleHeightInches() {
+                                if (heightUnit.value === 'ft') {
+                                    heightInchesRow.style.display = 'block';
+                                } else {
+                                    heightInchesRow.style.display = 'none';
+                                }
+                            }
+                            
+                            heightUnit.addEventListener('change', toggleHeightInches);
+                            toggleHeightInches(); // Initial state
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

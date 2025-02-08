@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">Add Workout Section to Program</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">Section Name</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.name.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.section_type.id_for_label }}" class="form-label">Section Type</label>
+                            {{ form.section_type }}
+                            {% if form.section_type.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.section_type.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.description.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Days</label>
+                            <div class="row">
+                                {% for value, text in form.days.field.choices %}
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input type="checkbox" name="{{ form.days.name }}" value="{{ value }}" class="form-check-input" id="day_{{ value }}">
+                                        <label class="form-check-label" for="day_{{ value }}">{{ text }}</label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.days.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.days.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Add Section</button>
+                            <a href="{% url 'programs:program_detail' program.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-check {
+        margin-bottom: 0.5rem;
+    }
+    input[type="text"], select, textarea {
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    textarea {
+        min-height: 100px;
+    }
+</style>
+{% endblock %}

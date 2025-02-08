@@ -6,26 +6,30 @@
     <h2>Create Meal</h2>
     <form method="post">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card mb-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Meal Details</h5>
-                        {% for field in meal_form %}
-                            <div class="mb-3">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% if field.errors %}
-                                    <div class="alert alert-danger">
-                                        {{ field.errors }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
+                        <h5 class="card-title mb-3">Meal Details</h5>
+                        <div class="row">
+                            {% for field in meal_form %}
+                                <div class="col-md-3 mb-3">
+                                    {{ field.label_tag }}
+                                    {{ field }}
+                                    {% if field.errors %}
+                                        <div class="alert alert-danger mt-1">
+                                            {{ field.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-8">
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Detected Food Items</h5>
@@ -36,20 +40,20 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>Food Item</th>
-                                        <th>Quantity</th>
-                                        <th>Unit</th>
-                                        <th>Calories</th>
-                                        <th>Protein (g)</th>
-                                        <th>Carbs (g)</th>
-                                        <th>Fat (g)</th>
-                                        <th>Remove</th>
+                                        <th style="width: 25%">Food Item</th>
+                                        <th style="width: 10%">Quantity</th>
+                                        <th style="width: 10%">Unit</th>
+                                        <th style="width: 10%">Calories</th>
+                                        <th style="width: 10%">Protein (g)</th>
+                                        <th style="width: 15%">Carbs (g)</th>
+                                        <th style="width: 15%">Fat (g)</th>
+                                        <th style="width: 5%">Remove</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for form in formset %}
                                         <tr class="food-item-form">
-                                            <td>
+                                            <td style="width: 25%">
                                                 {{ form.name }}
                                                 {% if form.name.errors %}
                                                     <div class="alert alert-danger">
