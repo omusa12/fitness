@@ -1,6 +1,6 @@
 # Fitness Application
 
-A comprehensive fitness application with a Django backend and React Native mobile frontend. This application helps users track their workouts, follow training programs, and connect with trainers.
+A comprehensive fitness application with a Django backend and Flutter mobile frontend. This application helps users track their workouts, follow training programs, and connect with trainers.
 
 ## Project Structure
 
@@ -15,11 +15,13 @@ A comprehensive fitness application with a Django backend and React Native mobil
 │   ├── users/          # User management
 │   └── workouts/       # Workout and exercise management
 │
-└── mobile/          # React Native mobile application
-    ├── src/            # Source code
-    │   ├── screens/    # Screen components
-    │   └── services/   # API services
-    └── App.js          # Root component
+└── mobile/          # Flutter mobile application
+    ├── lib/            # Source code
+    │   ├── models/     # Data models
+    │   ├── screens/    # Screen widgets
+    │   ├── services/   # API services
+    │   └── widgets/    # Reusable widgets
+    └── main.dart       # Entry point
 ```
 
 ## Backend (Django)
@@ -58,29 +60,22 @@ python manage.py runserver
 - Nutrition Tracking
 - Forum Discussions
 
-## Mobile (React Native)
+## Mobile (Flutter)
 
 ### Setup
 
-1. Install dependencies:
+1. Install Flutter:
+   - Follow the official Flutter installation guide: https://flutter.dev/docs/get-started/install
+
+2. Install dependencies:
 ```bash
 cd mobile
-npm install
+flutter pub get
 ```
 
-2. Start the development server:
+3. Run the app:
 ```bash
-npm start
-```
-
-3. Run on iOS/Android:
-```bash
-# iOS
-npx pod-install ios
-npm run ios
-
-# Android
-npm run android
+flutter run
 ```
 
 ### Features
@@ -94,7 +89,7 @@ npm run android
 
 ## API Integration
 
-The mobile app communicates with the Django backend through RESTful APIs. The API endpoints are defined in the backend's URLs and consumed by the mobile app's services.
+The Flutter mobile app communicates with the Django backend through RESTful APIs. The API endpoints are defined in the backend's URLs and consumed by the mobile app's services using the `http` package.
 
 ## Contributing
 
